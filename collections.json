@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "Player Service - Local",
+    "_postman_id": "b3c8f1a0-3d9f-4d6d-9f86-4f3a6a5c0d2a",
+    "description": "Local endpoints for backend-java-player-service-main-epam",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Players - List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/v1/players",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["v1", "players"]
+        }
+      }
+    },
+    {
+      "name": "Players - Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/v1/players/{{player_id}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["v1", "players", "{{player_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Chat - List Models",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/v1/chat/list-models",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["v1", "chat", "list-models"]
+        }
+      }
+    },
+    {
+      "name": "Chat - Generate",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/v1/chat",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["v1", "chat"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "player_id",
+      "value": "REPLACE_WITH_ID"
+    }
+  ]
+}
