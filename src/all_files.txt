@@ -1,0 +1,579 @@
+===== src/main/java/com/app/playerservicejava/PlayerServiceJavaApplication.java =====
+package com.app.playerservicejava;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class PlayerServiceJavaApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(PlayerServiceJavaApplication.class, args);
+    }
+
+}
+
+===== src/main/java/com/app/playerservicejava/config/ChatClientConfiguration.java =====
+package com.app.playerservicejava.config;
+
+
+import io.github.ollama4j.OllamaAPI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class ChatClientConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatClientConfiguration.class);
+
+    // Once you start the Ollama docker container - Ollama server runs locally on port 11434 at http://127.0.0.1:11434/
+    private String OLLAMA_HOST = "http://127.0.0.1:11434/";
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    public OllamaAPI ollamaAPI() {
+        OllamaAPI api = new OllamaAPI(OLLAMA_HOST);
+        api.setRequestTimeoutSeconds(120);
+        return api;
+    }
+
+}
+
+===== src/main/java/com/app/playerservicejava/controller/PlayerController.java =====
+package com.app.playerservicejava.controller;
+
+import com.app.playerservicejava.model.Player;
+import com.app.playerservicejava.model.Players;
+import com.app.playerservicejava.service.PlayerService;
+import jakarta.annotation.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
+import static org.springframework.http.ResponseEntity.ok;
+
+@RestController
+@RequestMapping(value = "v1/players", produces = { MediaType.APPLICATION_JSON_VALUE })
+public class PlayerController {
+    @Resource
+    private PlayerService playerService;
+
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Players> getPlayers() {
+        Players players = playerService.getPlayers();
+        return ok(players);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Player> getPlayerById(@PathVariable("id") String id) {
+        Optional<Player> player = playerService.getPlayerById(id);
+
+        if (player.isPresent()) {
+            return new ResponseEntity<>(player.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+}
+
+===== src/main/java/com/app/playerservicejava/controller/chat/ChatController.java =====
+package com.app.playerservicejava.controller.chat;
+
+import com.app.playerservicejava.service.chat.ChatClientService;
+import io.github.ollama4j.exceptions.OllamaBaseException;
+import io.github.ollama4j.models.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
+
+@Controller
+@RequestMapping(value = "v1/chat", produces = { MediaType.APPLICATION_JSON_VALUE })
+public class ChatController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatController.class);
+
+    @Autowired
+    private ChatClientService chatClientService;
+
+    @PostMapping
+    public @ResponseBody String chat() throws OllamaBaseException, IOException, InterruptedException {
+        return chatClientService.chat();
+    }
+
+    @GetMapping("/list-models")
+    public ResponseEntity<List<Model>> listModels() throws OllamaBaseException, IOException, URISyntaxException, InterruptedException {
+        List<Model> models = chatClientService.listModels();
+        return ResponseEntity.ok(models);
+    }
+}
+
+===== src/main/java/com/app/playerservicejava/model/Player.java =====
+package com.app.playerservicejava.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name="PLAYERS")
+public class Player {
+
+    @Id
+    @Column(name = "PLAYERID")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String playerId;
+
+    @Column(name = "BIRTHYEAR")
+    private String birthYear;
+
+    @Column(name = "BIRTHMONTH")
+    private String birthMonth;
+
+    @Column(name = "BIRTHDAY")
+    private String birthDay;
+
+    @Column(name = "BIRTHCOUNTRY")
+    private String birthCountry;
+
+    @Column(name = "BIRTHSTATE")
+    private String birthState;
+
+    @Column(name = "BIRTHCITY")
+    private String birthCity;
+
+    @Column(name = "DEATHYEAR")
+    private String deathYear;
+
+    @Column(name = "DEATHMONTH")
+    private String deathMonth;
+
+    @Column(name = "DEATHDAY")
+    private String deathDay;
+
+    @Column(name = "DEATHCOUNTRY")
+    private String deathCountry;
+
+    @Column(name = "DEATHSTATE")
+    private String deathState;
+
+    @Column(name = "DEATHCITY")
+    private String deathCity;
+
+    @Column(name = "NAMEFIRST")
+    private String firstName;
+
+    @Column(name = "NAMELAST")
+    private String lastName;
+
+    @Column(name = "NAMEGIVEN")
+    private String givenName;
+
+    @Column(name = "WEIGHT")
+    private String weight;
+
+    @Column(name = "HEIGHT")
+    private String height;
+
+    @Column(name = "BATS")
+    private String bats;
+
+    @Column(name = "THROWS")
+    private String throwStats;
+
+    @Column(name = "DEBUT")
+    private String debut;
+
+    @Column(name = "FINALGAME")
+    private String finalGame;
+
+    @Column(name = "RETROID")
+    private String retroId;
+
+    @Column(name = "BBREFID")
+    private String bbrefId;
+
+    public Player() {}
+
+    public String getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(String playerId) {
+        this.playerId = playerId;
+    }
+
+    public String getBirthYear() {
+        return birthYear;
+    }
+
+    public void setBirthYear(String birthYear) {
+        this.birthYear = birthYear;
+    }
+
+    public String getBirthMonth() {
+        return birthMonth;
+    }
+
+    public void setBirthMonth(String birthMonth) {
+        this.birthMonth = birthMonth;
+    }
+
+    public String getBirthDay() {
+        return birthDay;
+    }
+
+    public void setBirthDay(String birthDay) {
+        this.birthDay = birthDay;
+    }
+
+    public String getBirthCountry() {
+        return birthCountry;
+    }
+
+    public void setBirthCountry(String birthCountry) {
+        this.birthCountry = birthCountry;
+    }
+
+    public String getBirthState() {
+        return birthState;
+    }
+
+    public void setBirthState(String birthState) {
+        this.birthState = birthState;
+    }
+
+    public String getBirthCity() {
+        return birthCity;
+    }
+
+    public void setBirthCity(String birthCity) {
+        this.birthCity = birthCity;
+    }
+
+    public String getDeathYear() {
+        return deathYear;
+    }
+
+    public void setDeathYear(String deathYear) {
+        this.deathYear = deathYear;
+    }
+
+    public String getDeathMonth() {
+        return deathMonth;
+    }
+
+    public void setDeathMonth(String deathMonth) {
+        this.deathMonth = deathMonth;
+    }
+
+    public String getDeathDay() {
+        return deathDay;
+    }
+
+    public void setDeathDay(String deathDay) {
+        this.deathDay = deathDay;
+    }
+
+    public String getDeathCountry() {
+        return deathCountry;
+    }
+
+    public void setDeathCountry(String deathCountry) {
+        this.deathCountry = deathCountry;
+    }
+
+    public String getDeathState() {
+        return deathState;
+    }
+
+    public void setDeathState(String deathState) {
+        this.deathState = deathState;
+    }
+
+    public String getDeathCity() {
+        return deathCity;
+    }
+
+    public void setDeathCity(String deathCity) {
+        this.deathCity = deathCity;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
+
+    public String getHeight() {
+        return height;
+    }
+
+    public void setHeight(String height) {
+        this.height = height;
+    }
+
+    public String getBats() {
+        return bats;
+    }
+
+    public void setBats(String bats) {
+        this.bats = bats;
+    }
+
+    public String getThrowStats() {
+        return throwStats;
+    }
+
+    public void setThrowStats(String throwStats) {
+        this.throwStats = throwStats;
+    }
+
+    public String getDebut() {
+        return debut;
+    }
+
+    public void setDebut(String debut) {
+        this.debut = debut;
+    }
+
+    public String getFinalGame() {
+        return finalGame;
+    }
+
+    public void setFinalGame(String finalGame) {
+        this.finalGame = finalGame;
+    }
+
+    public String getRetroId() {
+        return retroId;
+    }
+
+    public void setRetroId(String retroId) {
+        this.retroId = retroId;
+    }
+
+    public String getBbrefId() {
+        return bbrefId;
+    }
+
+    public void setBbrefId(String bbrefId) {
+        this.bbrefId = bbrefId;
+    }
+}
+
+===== src/main/java/com/app/playerservicejava/model/Players.java =====
+package com.app.playerservicejava.model;
+
+
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Players implements Serializable {
+    private List<Player> players;
+
+    public Players() {
+        this.players = new ArrayList<>();
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+}
+
+===== src/main/java/com/app/playerservicejava/repository/PlayerRepository.java =====
+package com.app.playerservicejava.repository;
+import com.app.playerservicejava.model.Player;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PlayerRepository extends JpaRepository<Player, String> {
+
+}
+
+===== src/main/java/com/app/playerservicejava/service/PlayerService.java =====
+package com.app.playerservicejava.service;
+
+import com.app.playerservicejava.model.Player;
+import com.app.playerservicejava.model.Players;
+import com.app.playerservicejava.repository.PlayerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class PlayerService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerService.class);
+
+    @Autowired
+    private PlayerRepository playerRepository;
+
+    public Players getPlayers() {
+        Players players = new Players();
+        playerRepository.findAll()
+                .forEach(players.getPlayers()::add);
+        return players;
+    }
+
+    public Optional<Player> getPlayerById(String playerId) {
+        Optional<Player> player = null;
+
+        /* simulated network delay */
+        try {
+            player = playerRepository.findById(playerId);
+            Thread.sleep((long)(Math.random() * 2000));
+        } catch (Exception e) {
+            LOGGER.error("message=Exception in getPlayerById; exception={}", e.toString());
+            return Optional.empty();
+        }
+        return player;
+    }
+
+}
+
+===== src/main/java/com/app/playerservicejava/service/chat/ChatClientService.java =====
+package com.app.playerservicejava.service.chat;
+
+import io.github.ollama4j.OllamaAPI;
+import io.github.ollama4j.exceptions.OllamaBaseException;
+import io.github.ollama4j.models.Model;
+import io.github.ollama4j.models.OllamaResult;
+import io.github.ollama4j.types.OllamaModelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import io.github.ollama4j.utils.OptionsBuilder;
+import io.github.ollama4j.utils.PromptBuilder;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
+
+@Service
+public class ChatClientService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatClientService.class);
+
+    @Autowired
+    private OllamaAPI ollamaAPI;
+
+    public List<Model> listModels() throws OllamaBaseException, IOException, URISyntaxException, InterruptedException {
+        List<Model> models = ollamaAPI.listModels();
+        return models;
+    }
+
+    public String chat() throws OllamaBaseException, IOException, InterruptedException {
+        String model = OllamaModelType.TINYLLAMA;
+
+        // https://ollama4j.github.io/ollama4j/intro
+        PromptBuilder promptBuilder =
+                new PromptBuilder()
+                        .addLine("Recite a haiku about recursion.");
+
+        boolean raw = false;
+        OllamaResult response = ollamaAPI.generate(model, promptBuilder.build(), raw, new OptionsBuilder().build());
+        return response.getResponse();
+    }
+
+}
+
+===== src/main/resources/application.yml =====
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+    url: jdbc:h2:mem:playerdb
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  config:
+    use-legacy-processing: true
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+  include-debug-info: true
+  error:
+    include-message: always
+
+
+
+===== src/main/resources/schema.sql =====
+DROP TABLE IF EXISTS PLAYERS;
+
+-- Create a table from the csv
+CREATE TABLE PLAYERS AS SELECT * FROM CSVREAD('Player.csv');
+
+===== src/test/java/com/app/playerservicejava/PlayerServiceJavaApplicationTests.java =====
+package com.app.playerservicejava;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class PlayerServiceJavaApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}
+

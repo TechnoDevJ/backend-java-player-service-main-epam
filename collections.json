@@ -24,7 +24,12 @@
       "name": "Players - Get By Id",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "X-Role",
+            "value": "{{x_role}}"
+          }
+        ],
         "url": {
           "raw": "http://localhost:8080/v1/players/{{player_id}}",
           "protocol": "http",
@@ -67,6 +72,10 @@
     {
       "key": "player_id",
       "value": "REPLACE_WITH_ID"
+    },
+    {
+      "key": "x_role",
+      "value": "REPLACE_WITH_ROLE"
     }
   ]
 }
